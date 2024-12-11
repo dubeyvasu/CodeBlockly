@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Move Image with Blockly</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #blocklyDiv {
+            height: 400px;
+            width: 100%;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Move Image with Blockly</h1>
+    <input type="file" id="imageUpload" accept="image/*">
+    <button id="runButton">Run Blocks</button>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <div id="blocklyDiv"></div>
+    <xml id="toolbox" style="display: none;">
+        <category name="Image Controls" colour="210">
+            <block type="move_up"></block>
+            <block type="move_down"></block>
+            <block type="move_left"></block>
+            <block type="move_right"></block>
+            <block type="set_position"></block>
+        </category>
+    </xml>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let image = null; // Stores the loaded image
+        let imageX = 200, imageY = 200; // Initial image position
+
+        // Load image on canvas
+        function drawImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (image) {
+                ctx.drawImage(image, imageX, imageY, 100, 100); // Draw image at current position
+            }
+        }
+
+        // Load image from file input
+        document.getElementById('imageUpload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        image = img;
+                        drawImage();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+// First, define custom block types
+Blockly.Blocks['move_up'] = {
+    init: function() {
+        this.jsonInit({
+            "type": "move_up",
+            "message0": "Move Up by %1 pixels",
+            "args0": [
+                { "type": "field_number", "name": "PIXELS", "value": 10 }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 210
+        });
+    }
+};
+
+Blockly.Blocks['move_down'] = {
+    init: function() {
+        this.jsonInit({
+            "type": "move_down",
+            "message0": "Move Down by %1 pixels",
+            "args0": [
+                { "type": "field_number", "name": "PIXELS", "value": 10 }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 210
+        });
+    }
+};
+
+Blockly.Blocks['move_left'] = {
+    init: function() {
+        this.jsonInit({
+            "type": "move_left",
+            "message0": "Move Left by %1 pixels",
+            "args0": [
+                { "type": "field_number", "name": "PIXELS", "value": 10 }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 210
+        });
+    }
+};
+
+Blockly.Blocks['move_right'] = {
+    init: function() {
+        this.jsonInit({
+            "type": "move_right",
+            "message0": "Move Right by %1 pixels",
+            "args0": [
+                { "type": "field_number", "name": "PIXELS", "value": 10 }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 210
+        });
+    }
+};
+
+Blockly.Blocks['set_position'] = {
+    init: function() {
+        this.jsonInit({
+            "type": "set_position",
+            "message0": "Set Position to X: %1 Y: %2",
+            "args0": [
+                { "type": "field_number", "name": "X", "value": 200 },
+                { "type": "field_number", "name": "Y", "value": 200 }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 210
+        });
+    }
+};
+
+// Then, register the JavaScript generators
+Blockly.JavaScript['move_up'] = function(block) {
+    const pixels = block.getFieldValue('PIXELS');
+    return `imageY -= ${pixels};\ndrawImage();\n`;
+};
+
+Blockly.JavaScript['move_down'] = function(block) {
+    const pixels = block.getFieldValue('PIXELS');
+    return `imageY += ${pixels};\ndrawImage();\n`;
+};
+
+Blockly.JavaScript['move_left'] = function(block) {
+    const pixels = block.getFieldValue('PIXELS');
+    return `imageX -= ${pixels};\ndrawImage();\n`;
+};
+
+Blockly.JavaScript['move_right'] = function(block) {
+    const pixels = block.getFieldValue('PIXELS');
+    return `imageX += ${pixels};\ndrawImage();\n`;
+};
+
+Blockly.JavaScript['set_position'] = function(block) {
+    const x = block.getFieldValue('X');
+    const y = block.getFieldValue('Y');
+    return `imageX = ${x};\nimageY = ${y};\ndrawImage();\n`;
+};
+        // Initialize Blockly
+        const workspace = Blockly.inject('blocklyDiv', {
+            toolbox: document.getElementById('toolbox'),
+        });
+
+        // Run Blockly code
+        document.getElementById('runButton').addEventListener('click', () => {
+            const code = Blockly.JavaScript.workspaceToCode(workspace);
+            try {
+                eval(code); // Execute the generated code
+            } catch (error) {
+                console.error('Error executing Blockly code:', error);
+            }
+        });
+    </script>
+</body>
+</html>

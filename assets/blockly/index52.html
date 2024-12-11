@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #blocklyDiv {
+      height: calc(100% - 60px);
+      width: 100%;
+    }
+    #runButton {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="blocklyDiv"></div>
+  <button id="runButton">Run Code</button>
+
+  <xml id="toolbox" style="display: none">
+    <block type="record_speech"></block>
+    <block type="convert_speech"></block>
+    <block type="display_text"></block>
+  </xml>
+
+  <script>
+    // Define custom blocks
+    Blockly.Blocks['record_speech'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("Record Speech");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+        this.setTooltip("Start recording audio");
+      }
+    };
+
+    Blockly.Blocks['convert_speech'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("Convert Speech to Text");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+        this.setTooltip("Convert recorded audio to text");
+      }
+    };
+
+    Blockly.Blocks['display_text'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("Display Text");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+        this.setTooltip("Display the converted text");
+      }
+    };
+
+    // Define JavaScript generators for custom blocks
+    Blockly.JavaScript['record_speech'] = function(block) {
+      // Generate code for record_speech block
+      return 'recordAudio();\n';
+    };
+
+    Blockly.JavaScript['convert_speech'] = function(block) {
+      // Generate code for convert_speech block
+      return 'sendAudioToAPI();\n';
+    };
+
+    Blockly.JavaScript['display_text'] = function(block) {
+      // Generate code for display_text block
+      return 'displayText();\n';
+    };
+
+    // Initialize Blockly workspace
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'),
+      scrollbars: true,
+      move: {
+        scrollbars: true,
+        drag: true,
+        wheel: true
+      }
+    });
+
+    // Get generated code
+    function getCode() {
+      return Blockly.JavaScript.workspaceToCode(workspace);
+    }
+
+    // Run code function
+    function runCode() {
+      const code = getCode();
+      console.log(code);  // Check if the generated code is correct
+      // In a real app, you might want to run the generated code in an appropriate environment.
+      // For example, if this is for a web app, you could use `eval(code)` to execute it.
+    }
+
+    // Add event listener for run button
+    document.getElementById('runButton').addEventListener('click', runCode);
+  </script>
+</body>
+</html>

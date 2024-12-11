@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block-based Coding Platform</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script> 
+    <!-- Load Blockly core -->
+    <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+    <!-- Load the default blocks -->
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <!-- Load a generator -->
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/python_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/dart_compressed.js"></script>
+    <!-- Load a message file -->
+    <script src="https://unpkg.com/blockly/msg/en.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- <script src="blockly_compressed.js"></script> -->
+    <!-- <script src="blocks_compressed.js"></script> -->
+    <!-- <script src="javascript_compressed.js"></script> -->
+<style>
+  html,
+body {
+  height: 100%;
+        margin: 0;
+        overflow: hidden;
+}
+
+body {
+  background-color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /*disable pull to refresh */
+  font-family: BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+label {
+  user-select: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+span:focus {
+  outline: none;
+}
+
+tt {
+  font-size: 0.9em;
+  padding: 0.25rem 0.5rem;
+  background: #eaeaea;
+  margin: 0 0.25em;
+  border-radius: 1rem;
+  font-weight: bold;
+}
+
+.farSide {
+  text-align: right;
+}
+
+/* Buttons */
+button.icon,
+label.button.icon {
+  border-radius: 2rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #000;
+  padding: .25rem;
+  transition: border-color ease .125s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+button.icon:hover,
+label.button.icon:hover {
+  border: 1px solid #aaa;
+}
+
+button.icon:active,
+label.button.icon:active {
+  border-color: #000;
+}
+
+button.disabled:hover {
+  opacity: 0.6;
+}
+
+button.disabled {
+  display: none;
+}
+
+button.icon.text,
+label.icon.text {
+  display: inline-flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: .25em .5em;
+  white-space: nowrap;
+}
+
+button.icon.text::before,
+label.icon.text::before {
+  margin-right: .25rem;
+}
+
+h1 {
+  font-weight: normal;
+  font-size: 140%;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+/* Top menu */
+.top-menu {
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 .5rem 0 1rem;
+  user-select: none;
+  width: 100vw;
+  box-sizing: border-box;
+  border-bottom: 1px solid #ccc;
+}
+
+.top-menu>.logo {
+  display: flex;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.125;
+  color: #3298dc;
+}
+
+.top-menu>.logo:before {
+  content: "";
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  background-size: cover;
+  background-image: url(media/c.png);
+  background-size: auto 4rem;
+  background-position: left calc(-2rem*8) top;
+  /* heigth * index in icons.svg */
+}
+
+.top-menu>.tabs {
+  margin: 0 0.5rem;
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  padding: .5rem 0;
+}
+
+.top-menu #channel_connect {
+  display: flex;
+  border-radius: 2rem;
+  border: 1px solid #888;
+  margin-right: .25rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.top-menu #channel_connect>a {
+  -webkit-tap-highlight-color: transparent;
+  display: inline-block;
+  border-radius: 2rem;
+  padding: .25rem;
+  border: 1px solid transparent;
+  box-sizing: content-box;
+  margin: -1px;
+  opacity: 0.6;
+}
+
+.top-menu #channel_connect>a.selected {
+  opacity: 1;
+  border: 1px solid #777;
+  transition: box-shadow ease .125s;
+  background-color: #fff;
+}
+
+.top-menu #channel_connect:hover>a.selected {
+  box-shadow: -1px 0 3px #aaa;
+}
+
+#loadXML,
+#put-file-select {
+  display: none;
+}
+
+/* Channel Connect Panel */
+.channel-panel {
+  box-sizing: border-box;
+  z-index: 999;
+  position: fixed;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 18.5rem;
+  transition: .125s ease top, .125s ease opacity, .125s ease transform;
+  background: #fff;
+  border-radius: 1.5em;
+  padding: 0.25rem;
+  top: -15rem;
+  right: 22rem;
+  margin-right: 0;
+  border: 1px solid #aaa;
+  box-shadow: 0em 0em 0.5em rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.channel-panel#show {
+  top: .25rem;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.channel-panel>div>span {
+  width: 100%;
+  border-radius: 2rem;
+  color: #666;
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 0.5rem 0.5rem 0.125rem 0.5rem;
+}
+
+.channel-panel input,
+#file_save_as input {
+  border: none;
+  padding: 0;
+  height: 2rem;
+  font-size: 1rem;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.channel-panel input:focus {
+  outline: 0 !important;
+}
+
+.channel-panel #url,
+.channel-panel #password {
+  border-bottom: 1px solid #ccc;
+}
+
+.channel-panel #url {
+  margin-bottom: 1rem;
+}
+
+.channel-panel #url:disabled {
+  background-color: #fff;
+}
+
+#bluetoothButton,
+#serialButton,
+#networkButton,
+#scanButton {
+  display: inline-flex;
+  align-items: center;
+}
+
+.channel-panel .icon:before {
+  margin-right: .25rem;
+}
+
+.channel-panel>div {
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 1.25rem;
+  text-align: end;
+  width: 100%;
+}
+
+#closeZone {
+  position: absolute;
+  width: 100vw;
+  height: 100%;
+  top: 0;
+  z-index: 997;
+  display: none;
+}
+
+#closeZone.on {
+  display: block;
+}
+
+.checkswitch {
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+input.checkswitch[type="checkbox"] {
+  -webkit-tap-highlight-color: transparent;
+  display: none;
+}
+
+.checkswitch input:checked~span {
+  background: #3298dc;
+}
+
+.checkswitch span {
+  width: 2.5em;
+  height: 1.5em;
+  background: grey;
+  display: inline-block;
+  border-radius: 1.5em;
+  position: relative;
+  line-height: 1.5rem;
+}
+
+.checkswitch span::after {
+  content: "";
+  position: absolute;
+  top: 0.074em;
+  left: 0.075em;
+  width: 1.35em;
+  height: 1.35em;
+  background: rgb(255, 255, 255);
+  border-radius: 1.35em;
+  transition: left 0.25s ease-out 0s, transform 0.25s ease-out 0s;
+  box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
+}
+
+.checkswitch input:checked~span::after {
+  left: -0.27em;
+  transform: translateX(100%);
+}
+
+#scanButton {
+  line-height: 1.25rem;
+  font-size: 0.8rem;
+  margin: 0.125rem;
+  padding-right: 0.5rem;
+}
+
+#bluetoothButton,
+#serialButton,
+#networkButton {
+  font-weight: bold;
+  line-height: 1.75rem;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.channel-panel>div:first-of-type {
+  margin: 0.25rem 0;
+}
+
+#connectButton {
+  border: none;
+  background: none;
+}
+
+#channelButton {
+  border-color: #aaa;
+  margin: -1px;
+  background: #fff;
+}
+
+#channel_connect.wait,
+#toolbarButton.wait {
+  animation: blinking 1s infinite;
+}
+
+@keyframes blinking {
+  0% {
+    background-color: #fff;
+  }
+
+  50% {
+    background-color: #6aa8fb;
+  }
+
+  100% {
+    background-color: #fff;
+  }
+}
+
+#networkButton,
+#serialButton {
+  margin-top: -1px;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#scanButton:hover:before {
+  animation: spin 1s linear infinite;
+}
+
+/* Tabs */
+.tabs>div {
+  min-width: auto !important;
+  padding: 0.75rem .75rem;
+  transition: box-shadow ease .125s, background-color linear .125s, border-color linear .125s, color linear .125s;
+  margin: 0 0.125rem;
+  border-radius: .25rem;
+  border: 1px solid #fff;
+}
+
+@media (max-width:88rem) {
+  .tabs>div {
+    padding: .25rem;
+    margin: 0rem 1px;
+  }
+}
+
+.tabs>div.on {
+  box-shadow: 0 .125em .5em #ccc;
+  white-space: nowrap;
+  background: #3298dc;
+  color: #fff;
+  border-color: #3298dc;
+}
+
+.tabs>div {
+  cursor: pointer;
+}
+
+.tabs>div:hover {
+  border-color: #3298dc;
+  color: #3298dc;
+}
+
+.tabs>div.on:hover {
+  color: #fff !important;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+td {
+  padding: 0;
+  vertical-align: top;
+}
+
+#content_blocks,
+#content_iot {
+  visibility: hidden;
+}
+
+.content:not(#content_blocks):not(#content_iot) {
+  display: none;
+}
+
+.content {
+  width: 100vw;
+  top: 3.5rem;
+  margin: 0;
+  position: absolute;
+  opacity: 0;
+}
+
+.content:not(#content_blocks) {
+  transition: .125s ease left, .125s ease opacity, .125s ease width;
+}
+
+.content#content_blocks {
+  margin-top: -1px;
+}
+
+.content.ani#content_blocks,
+.content.ani#content_iot,
+#content_iot.ani #content_iot {
+  visibility: visible !important;
+}
+
+.content.ani:not(#content_console):not(#content_files) {
+  display: block !important;
+}
+
+.content.ani#content_console {
+  display: flex !important;
+}
+
+.content.ani#content_files {
+  display: grid !important;
+}
+
+.content.ani.on {
+  left: 0;
+  opacity: 1;
+}
+
+.content.pos1 {
+  width: 50vw !important;
+}
+
+.content._pos1 {
+  width: 50vw;
+  left: -1em !important;
+}
+
+.content.pos2 {
+  width: 50vw;
+  left: 50vw !important;
+  border-left: 1px solid #ccc;
+}
+
+.content._pos2 {
+  width: 50vw;
+  left: calc(50vw + 1em) !important;
+}
+
+pre.content {
+  border: 1px solid #ccc;
+  overflow: scroll;
+}
+
+ 
+#content_blocks,
+#content_device,
+#content_code,
+#content_console,
+#content_files,
+#content_device,
+#content_programs,
+#content_mqtt,
+#content_iot,
+#content_databoard,
+#content_firmware,
+#content_classifier,
+#content_teachable,
+#content_appinventor {
+  height: calc(100vh - 3.5rem);
+}
+
+#content_device,
+#content_code,
+#content_console {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#content_device #device_img {
+  max-width: 75rem;
+  width: 100%;
+}
+
+.blocklySvg {
+  border-top: none !important;
+}
+
+#content_console #file-boxes button {
+  white-space: nowrap;
+  margin-left: .25rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  color: #327ae7;
+  border: 1px solid #327ae7;
+  border-radius: 1.5rem;
+  background-color: #fff;
+  font-size: 0.8rem;
+}
+
+#content_xml {
+  resize: none;
+  outline: none;
+  border: none;
+  font-family: monospace;
+  width: 100%
+}
+
+#content_console {
+  flex-direction: column;
+  align-items: center;
+}
+
+#content_console #term {
+  padding: 0.5em;
+  background: #000;
+  margin: .75rem 0;
+  overflow: hidden;
+  border-radius: .5rem;
+  transition: box-shadow ease .125s;
+  box-shadow: 0 0.125rem .25rem rgba(0, 0, 0, .5);
+  overscroll-behavior: none;
+  /*disable chrome pull to refresh */
+}
+
+#tipsGeneric,
+#languageIcon {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #aaa;
+  padding: .5rem;
+  border-radius: 2rem;
+  opacity: 0.8;
+  margin: .5rem 0;
+}
+
+#languageIcon {
+  border: none;
+}
+
+#tipsGeneric:before {
+  margin-right: .25rem;
+}
+
+#content_console #term.on {
+  box-shadow: -0.25rem 0rem .75rem #6aa8fb, .25rem .25rem .75rem #7b49ad;
+}
+
+#content_console button {
+  line-height: 1.5rem;
+  font-size: 0.8rem;
+}
+
+#content_console>div,
+#content_console>div>span {
+  display: inline-flex;
+  align-items: center;
+}
+
+#file-boxes {
+  flex-wrap: wrap;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Files */
+#content_files {
+  grid-template-columns: 18rem calc(100% - 18rem);
+}
+
+#file-boxes #file-header,
+#file-boxes #file-status {
+  padding: 0 .25em 0 .5em;
+  text-align: center;
+}
+
+#file-boxes #file-header {
+  display: flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+}
+
+#file-boxes #file-header>span {
+  flex-grow: 2;
+}
+
+#file_save_as {
+  height: 2.5rem;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 0 .5rem 0 1.85rem
+}
+
+#file_save_as.py #updateXMLButton,
+#file_save_as.py #generated2DeviceButton {
+  display: none;
+}
+
+#file_save_as.bipes-xml #editor2DeviceButton,
+#file_save_as.bipes-xml #generated2DeviceButton {
+  display: none;
+}
+
+#file_save_as.bipes-py #editor2DeviceButton,
+#file_save_as.bipes-py #updateXMLButton {
+  display: none;
+}
+
+#file_save_as input {
+  font-weight: bold;
+  border-left: 1px solid #ccc;
+  padding-left: .5rem;
+}
+
+#file-boxes #file-status {
+  height: 1.5rem;
+  line-height: 1.5rem;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  color: #666;
+  font-size: 0.85rem;
+  overflow: hidden;
+  font-weight: bold;
+  background: #f7f7f7;
+}
+
+#filesPanel {
+  display: block;
+  height: calc(100vh - 8rem);
+  overflow-y: auto;
+  padding: 0.25rem 0.5rem;
+  border-right: 1px solid #ccc;
+}
+
+#filesPanel h2,
+.account-panel h2 {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  height: 2.5rem;
+}
+
+#fileList>div,
+#fileTemplate>div,
+#blocks2Code>div,
+#ProjectList>div {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  margin: 0.25rem 0;
+  padding: 0.25rem;
+  border-radius: .25rem;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  min-height: 2rem;
+  font-size: 0.9rem;
+}
+
+#fileList>div>div:last-child,
+#ProjectList>div>div:last-child {
+  flex-shrink: 0;
+}
+
+#fileList .runText,
+#ProjectList .runText {
+  width: 100%;
+  font-family: monospace;
+}
+
+#fileTemplate>div,
+#blocks2Code>div {
+  align-items: center;
+  word-break: break-word;
+  font-family: monospace;
+}
+
+#fileList>div>div,
+#ProjectList>div>div {
+  display: inline-flex;
+  align-items: center;
+  word-break: break-word;
+}
+
+#fileList .runText>span,
+#blocks2Code>div>span {
+  font-size: 0.8rem;
+  border: 1px solid #7b49ad;
+  border-radius: .75rem;
+  padding: .175rem .25rem;
+  color: #7b49ad;
+  margin-left: .25rem;
+  font-weight: bold;
+  word-break: keep-all;
+  font-family: sans-serif;
+}
+
+#fileList #runIcon {
+  filter: brightness(0)
+}
+
+#filesPanel details,
+.account-panel summary {
+  overflow: hidden;
+  transition: .125s ease border;
+}
+
+#filesPanel summary,
+.account-panel summary {
+  -webkit-tap-highlight-color: transparent;
+  white-space: normal;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#filesPanel summary>h2:before,
+.account-panel summary>h2:before {
+  content: "\1433";
+  margin-right: .5rem;
+  transition: transform .25s ease;
+  display: inline-block;
+  font-weight: normal;
+  font-size: 0.8rem;
+  line-height: 1rem;
+}
+
+#filesPanel details[open] summary>h2:before,
+.account-panel details[open] summary>h2:before {
+  transform: rotateZ(90deg);
+}
+
+#ProjectList>div {
+  transition: box-shadow ease .125s, background-color linear .125s, border-color linear .125s, color linear .125s;
+}
+
+#ProjectList>.current {
+  box-shadow: 0 0.125em 0.25em rgba(0, 0, 0, 0.2);
+  background: #3298dc;
+  color: #fff;
+  border-color: #3298dc;
+}
+
+#ProjectList .current span {
+  filter: invert(1);
+}
+
+/* Toolbar */
+@media (min-width: 60em) {
+  .top-menu>.toolbar {
+    display: flex;
+    height: 2.125rem;
+  }
+
+  .top-menu>#toolbarButton {
+    display: none;
+  }
+}
+
+@media (max-width: 59.99em) {
+  .top-menu>.toolbar {
+    box-sizing: border-box;
+    z-index: 999;
+    position: fixed;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    height: 7rem;
+    width: 18.5rem;
+    transition: .125s ease right, .125s ease top, .125s ease opacity;
+    background: #fff;
+    border-radius: 1em;
+    top: -5rem;
+    right: -20rem;
+    margin-right: 0;
+    border: 1px solid #aaa;
+    box-shadow: 0em 0em 0.5em rgba(0, 0, 0, 0.5);
+    opacity: 0;
+  }
+
+  .top-menu>.toolbar#show {
+    top: .25rem;
+    right: .25rem;
+    opacity: 1;
+  }
+
+  .toolbar>#channel_connect {
+    order: 1;
+    margin-right: 0;
+    margin-left: .125rem;
+  }
+
+  .logo {
+    font-size: 0 !important;
+  }
+
+  #toolbarButton {
+    border-radius: 1rem;
+    border: 1px solid #aaa;
+    transition: .125s ease box-shadow;
+  }
+
+  #toolbarButton:hover {
+    box-shadow: 0em 0em 0.25em #aaa;
+  }
+
+  .channel-panel {
+    right: -16rem;
+    top: 3.5rem;
+
+  }
+
+  .channel-panel#show {
+    right: .25rem;
+    top: 3.5rem;
+  }
+}
+
+/* Sprited icons. */
+
+button.icon:before,
+#deviceSelect.icon:before,
+a.icon:before,
+span.icon:before,
+label.icon:before {
+  content: "";
+  background-size: cover;
+  background-image: url(media/icons.svg);
+  width: 1.5rem;
+  height: 1.5rem;
+  background-size: auto 3rem;
+}
+
+button.icon:before,
+label.icon:before {
+  display: block;
+}
+
+span.icon:before {
+  display: inline-block;
+}
+
+button.icon.medium:before {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-size: auto 5rem;
+}
+
+#linkButton:before {
+  background-position: left calc(-1.5rem*0) top;
+  /* icon size * index on icons.svg*/
+}
+
+#saveButton:before,
+#downloadIcon:before {
+  background-position: left calc(-1.5rem*1) top;
+}
+
+#loadButton:before {
+  background-position: left calc(-1.5rem*2) top;
+}
+
+#saveToSketchButton:before,
+#saveToSketchIcon:before {
+  background-position: left calc(-1.5rem*19) top;
+}
+
+#trashButton:before,
+#trashIcon:before {
+  background-position: left calc(-1.5rem*3) top;
+}
+
+#notificationButton:before {
+  background-position: left calc(-1.5rem*4) top;
+}
+
+#deviceSelect:before {
+  background-position: left calc(-1.5rem*7) top;
+}
+
+#runButton:before,
+#runIcon:before {
+  transition: background ease .125s;
+  background-position: left calc(-1.5rem*5) top;
+}
+
+#runButton.on:before {
+  background-position: left calc(-1.5rem*5) bottom;
+}
+
+#languageIcon:before {
+  background-position: left calc(-1.5rem*6) top;
+}
+
+#serialButton:before,
+#channelButton.webserial:before {
+  background-position: left calc(-1.5rem*9) top;
+}
+
+#networkButton:before,
+#channelButton.websocket:before {
+  background-position: left calc(-1.5rem*10) top;
+}
+
+#toolbarButton:before {
+  background-position: left calc(-2.5rem*11) top;
+}
+
+#toolbarButton.on:before {
+  background-position: left calc(-2.5rem*11) bottom;
+}
+
+#forumButton:before {
+  background-position: left calc(-1.5rem*12) top;
+}
+
+#bluetoothButton:before,
+#channelButton.webbluetooth:before {
+  background-position: left calc(-1.5rem*15) top;
+}
+
+#connectButton:before {
+  background-position: left calc(-1.5rem*13) top;
+}
+
+#connectButton.on:before {
+  background-position: left calc(-1.5rem*13) bottom;
+}
+
+#scanButton:before {
+  background-position: left calc(-1.5rem*14) top;
+}
+
+#settingsGeneric:before {
+  background-position: left calc(-1.5rem*16) top;
+}
+
+#tipsGeneric:before {
+  background-position: left calc(-1.5rem*17) top;
+}
+
+#refreshFilesList:before {
+  background-position: left calc(-1.5rem*18) top;
+}
+
+#putFileButton:before,
+#editor2DeviceButton:before,
+#generated2DeviceButton:before {
+  background-position: left calc(-1.5rem*19) top;
+}
+
+#updateXMLButton:before {
+  background-position: left calc(-1.5rem*20) bottom;
+}
+
+#accountButton:before {
+  background-position: left calc(-1.5rem*22) top;
+}
+
+#newProjectButton:before {
+  background-position: left calc(-1.5rem*23) top;
+}
+
+
+@media (max-width: 710px) {
+  .tab_collapse {
+    display: none;
+  }
+}
+
+/*Select*/
+#deviceSelect {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #327ae7;
+  border-radius: 2rem;
+  padding-left: .5rem;
+}
+
+#device_selector {
+  /* A reset of styles of select object */
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  height: 2rem;
+  color: #327ae7;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+#device_selector:focus {
+  color: #000;
+}
+
+@media (max-width: 59.99em) {
+  #device_selector {
+    width: 13rem;
+  }
+}
+
+/* Run button */
+#runButton {
+  border: none;
+  border: 1px solid #327ae7;
+  margin: -1px;
+  opacity: 1;
+  padding: 0.25rem .4rem;
+  background: #fff;
+  transition: box-shadow ease .125s;
+}
+
+#runButton:hover {
+  box-shadow: -1px 0 3px #327ae7;
+}
+
+/* Privacy link */
+.privacyLink {
+  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-size: small;
+  text-decoration: none;
+}
+
+#languageMenu {
+  border: none;
+  height: 2rem;
+  width: 100%;
+  border-radius: 1rem;
+  background: #fff;
+  padding: .25em;
+}
+
+.account-panel,
+.notify-panel,
+.notify {
+  user-select: none;
+  transition: top ease .5s, right ease .5s, opacity ease .125s, background linear .5s, margin-right ease .125s;
+  transition-delay: 0s, 0s, .1s, 0s, 0s;
+  color: #222;
+  opacity: 0;
+  background: #fff;
+}
+
+@media (min-width: 60em) {
+
+  .account-panel,
+  .notify-panel {
+    border-radius: 1rem;
+    margin: 0.5em;
+    border: 1px solid #aaa !important;
+  }
+}
+
+/* Notifications */
+.notify {
+  z-index: 997;
+  right: -18em;
+  bottom: .5em;
+  padding: 1em;
+  position: fixed;
+  box-shadow: 0 .125em .5em rgba(0, 0, 0, .6);
+  background: #3298dc;
+  color: #fff;
+}
+
+.notify#show {
+  opacity: 1;
+  right: .5em;
+}
+
+.notify hr {
+  border: none;
+  height: 1px;
+  background-color: #fff;
+}
+
+.notify-panel>span,
+.notify {
+  border-radius: .25rem;
+}
+
+.notify-panel>span {
+  background: #fff;
+  padding: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: .25rem 0;
+  transition: box-shadow ease .125s;
+  box-sizing: border-box;
+  border: solid 1px #ccc;
+}
+
+.notify-panel>span:hover {
+  border-color: #aaa;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+
+.notify-panel>span>span {
+  cursor: pointer;
+  opacity: .6;
+  transition: opacity linear .125s;
+}
+
+.notify-panel>span>span:hover {
+  opacity: 1;
+}
+
+.notify-panel,
+.account-panel {
+  position: fixed;
+  overflow-y: auto;
+  z-index: 998;
+  width: 18rem;
+  padding: 0 .5em;
+  top: 3.5rem;
+  bottom: 0;
+  right: -22em;
+  background: #fefefe;
+  border-left: solid 1px #ccc;
+  display: flex;
+  box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.5);
+}
+
+.account-panel {
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.notify-panel {
+  flex-direction: column-reverse;
+  justify-content: end;
+}
+
+@media (max-width: 59.99em) {
+
+  .notify-panel,
+  .account-panel {
+    padding-top: 4.5rem;
+  }
+}
+
+.notify-panel#show,
+.account-panel#show {
+  opacity: 1;
+  right: 0;
+}
+
+/* Progress Bar */
+.progress-bar {
+  z-index: 500;
+  position: fixed;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  height: 0;
+  transition: .125s ease height;
+  top: 3.375rem;
+}
+
+.progress-bar#on {
+  height: .25em;
+}
+
+.progress-bar div {
+  content: '';
+  position: absolute;
+  height: 100%;
+  background: #3298dc;
+}
+
+.progress-bar div {
+  width: 0%;
+  transition: .125s linear width;
+}
+
+
+#account_header {
+  font-size: 1.25rem;
+  margin: .5em 0;
+  display: block;
+}
+
+#account_user {
+  border-bottom: 1px dashed #666;
+  font-weight: bold;
+  padding-bottom: .125rem;
+}
+</style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    text-align: center;
+    /* padding: 50px; */
+}
+
+#blocklyDiv {
+  height: calc(100% - 60px); /* Takes the remaining space for Blockly */
+  width: 100%;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+.blocklyTreeLabel {
+    color: black;
+  }
+  /* Adds padding around the group of categories and separators. */
+  .blocklyToolboxContents {
+    padding: .5em;
+  }
+  /* Adds space between the categories, rounds the corners and adds space around the label. */
+  .blocklyTreeRow {
+    padding: 3px;
+    height: 30px;
+    margin-bottom: .5em;
+    border-radius: 4px;
+  }
+  .container{
+    padding: 0%;
+    margin: 0%;
+    width: 100%;
+  }
+  
+</style>
+</head>
+<body>
+   
+    
+        <div class="container"><div class="row">
+            <div class="col-9">
+            <div id="blocklyDiv"  style="height: 600px; width: 100%;"></div>
+            </div>
+            <div class="col-3">
+            <pre id="codeArea" style="border: 1px solid #ccc; height: calc(100% - 30px); width: 100%;"></pre>
+            </div>
+        </div>
+        <div id="loading" style="display: none;">Uploading...</div>
+
+        <button id="generateCode">Generate Code</button>
+        <button id="downloadCode">Download Code</button>
+        
+    </div> 
+    <script>
+      Blockly.defineBlocksWithJsonArray([
+    {
+        "type": "arduino_setup",
+        "message0": "void setup %1",
+        "args0": [
+            {
+                "type": "input_statement",
+                "name": "SETUP"
+            }
+        ],
+        "nextStatement": null,
+        "colour": 120,
+        "tooltip": "Setup code runs once at the start",
+        "helpUrl": ""
+    },
+    {
+        "type": "arduino_loop",
+        "message0": "void loop %1",
+        "args0": [
+            {
+                "type": "input_statement",
+                "name": "LOOP"
+            }
+        ],
+        "previousStatement": null,
+        "colour": 120,
+        "tooltip": "Loop code runs repeatedly",
+        "helpUrl": ""
+    },
+    {
+        "type": "delay",
+        "message0": "delay %1 milliseconds",
+        "args0": [
+            {
+                "type": "input_value",
+                "name": "DELAY_TIME",
+                "check": "Number"
+            }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 230,
+        "tooltip": "Delays the program for a specified number of milliseconds",
+        "helpUrl": ""
+    }
+]);
+
+Blockly.JavaScript.forBlock['arduino_setup'] = function(block) {
+    var statements_setup = Blockly.JavaScript.statementToCode(block, 'SETUP');
+    return 'void setup() {\n' + statements_setup + '}\n';
+};
+
+Blockly.JavaScript.forBlock['arduino_loop'] = function(block) {
+    var statements_loop = Blockly.JavaScript.statementToCode(block, 'LOOP');
+    return 'void loop() {\n' + statements_loop + '}\n';
+};
+
+Blockly.JavaScript.forBlock['delay'] = function(block) {
+    var delayTime = Blockly.JavaScript.valueToCode(block, 'DELAY_TIME', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'delay(' + delayTime + ');\n';
+};
+
+
+// Define a block for turning LED on
+Blockly.defineBlocksWithJsonArray([{
+    "type": "turn_led_on",
+    "message0": "turn LED on at pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 13, // Default value
+            "min": 0,
+            "max": 40
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Turn the LED on",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['turn_led_on'] = function (block) {
+    // Efficiently fetch the pin value, using 13 as the default if not provided
+    const pinValue = block.getFieldValue('PIN') || '13';
+    
+    // Return the optimized code string for turning on the LED
+    return `digitalWrite(${pinValue}, HIGH);\n`;
+};
+
+
+// Define a block for turning LED off
+Blockly.defineBlocksWithJsonArray([{
+    "type": "turn_led_off",
+    "message0": "turn LED off at pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 13, // Default value
+            "min": 0,
+            "max": 40
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Turn the LED off",
+    "helpUrl": ""
+}]);
+
+
+// Code generation for turning LED off
+Blockly.JavaScript.forBlock['turn_led_off'] = function (block) {
+    // Efficiently fetch the pin value, using 13 as the default if not provided
+    const pinValue = block.getFieldValue('PIN') || '13';
+    
+    // Return the optimized code string for turning on the LED
+    return `digitalWrite(${pinValue}, LOW);\n`;
+};
+
+// Define a block for setting pin mode (INPUT/OUTPUT)
+Blockly.defineBlocksWithJsonArray([{
+    "type": "pin_mode",
+    "message0": "set pin %1 to %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 40
+        },
+        {
+            "type": "field_dropdown",
+            "name": "MODE",
+            "options": [
+                ["INPUT", "INPUT"],
+                ["OUTPUT", "OUTPUT"]
+            ]
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Set pin mode to input or output",
+    "helpUrl": ""
+}]);
+
+// Code generation for pin mode
+Blockly.JavaScript.forBlock['pin_mode'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    var mode = block.getFieldValue('MODE');
+    return 'pinMode(' + pin + ', ' + mode + ');\n';
+};
+
+
+// Define a block for reading temperature from a pin (DHT sensor)
+Blockly.defineBlocksWithJsonArray([{
+    "type": "read_temperature",
+    "message0": "read temperature from pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 40
+        }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Read temperature value from DHT11 sensor",
+    "helpUrl": ""
+}]);
+
+// JavaScript code generation for reading temperature
+Blockly.JavaScript.forBlock['read_temperature'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    return ['readTemperature(' + pin + ')', Blockly.JavaScript.ORDER_NONE];
+};
+
+
+// Define a block for digital write (set a pin to HIGH or LOW)
+Blockly.defineBlocksWithJsonArray([{
+    "type": "digital_write",
+    "message0": "set digital pin %1 to %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 40
+        },
+        {
+            "type": "field_dropdown",
+            "name": "STATE",
+            "options": [
+                ["HIGH", "HIGH"],
+                ["LOW", "LOW"]
+            ]
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Set digital pin to high or low",
+    "helpUrl": ""
+}]);
+
+// Code generation for digital write
+Blockly.JavaScript.forBlock['digital_write'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    var state = block.getFieldValue('STATE');
+    return 'digitalWrite(' + pin + ', ' + state + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "analog_read",
+    "message0": "read analog value from pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 40
+        }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Read an analog value from the given pin",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['analog_read'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    return ['analogRead(' + pin + ')', Blockly.JavaScript.ORDER_NONE];
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "led_control",
+    "message0": "set LED on pin %1 to %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 13,
+            "min": 0,
+            "max": 40
+        },
+        {
+            "type": "field_dropdown",
+            "name": "STATE",
+            "options": [
+                ["HIGH", "HIGH"],
+                ["LOW", "LOW"]
+            ]
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Set the LED to on (HIGH) or off (LOW)",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['led_control'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    var state = block.getFieldValue('STATE');
+    return 'digitalWrite(' + pin + ', ' + state + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "motor_control",
+    "message0": "set motor on pin %1 to speed %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 9,
+            "min": 0,
+            "max": 40
+        },
+        {
+            "type": "field_number",
+            "name": "SPEED",
+            "value": 255,
+            "min": 0,
+            "max": 255
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 180,
+    "tooltip": "Set motor speed between 0 and 255",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['motor_control'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    var speed = block.getFieldValue('SPEED');
+    return 'analogWrite(' + pin + ', ' + speed + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "buzzer_control",
+    "message0": "set buzzer on pin %1 to %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 8,
+            "min": 0,
+            "max": 40
+        },
+        {
+            "type": "field_dropdown",
+            "name": "STATE",
+            "options": [
+                ["ON", "HIGH"],
+                ["OFF", "LOW"]
+            ]
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 200,
+    "tooltip": "Turn the buzzer on or off",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['buzzer_control'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    var state = block.getFieldValue('STATE');
+    return 'digitalWrite(' + pin + ', ' + state + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_begin",
+    "message0": "initialize serial communication at %1 baud",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "BAUD",
+            "value": 9600
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Initialize serial communication",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_begin'] = function(block) {
+    var baud = block.getFieldValue('BAUD');
+    return 'Serial.begin(' + baud + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_print",
+    "message0": "print %1 to serial",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "TEXT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Prints text to the serial monitor",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_print'] = function(block) {
+    var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'Serial.print(' + text + ');\n';
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_println",
+    "message0": "print %1 to serial with newline",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "TEXT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Prints text to the serial monitor with a newline",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_println'] = function(block) {
+    var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'Serial.println(' + text + ');\n';
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_read",
+    "message0": "read data from serial",
+    "output": "String",
+    "colour": 210,
+    "tooltip": "Reads data from the serial port",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_read'] = function(block) {
+    return ['Serial.read()', Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_control",
+    "message0": "if serial input %1 then set pin %2 to %3",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "CONDITION"
+        },
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 13
+        },
+        {
+            "type": "field_dropdown",
+            "name": "STATE",
+            "options": [
+                ["HIGH", "HIGH"],
+                ["LOW", "LOW"]
+            ]
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Control actuator based on serial input",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_control'] = function(block) {
+    var condition = Blockly.JavaScript.valueToCode(block, 'CONDITION', Blockly.JavaScript.ORDER_ATOMIC);
+    var pin = block.getFieldValue('PIN');
+    var state = block.getFieldValue('STATE');
+    var code = 'if (Serial.read() == ' + condition + ') {\n  digitalWrite(' + pin + ', ' + state + ');\n}\n';
+    return code;
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "bluetooth_begin",
+    "message0": "initialize Bluetooth at %1 baud",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "BAUD",
+            "value": 9600
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Initialize Bluetooth communication",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['bluetooth_begin'] = function(block) {
+    var baud = block.getFieldValue('BAUD');
+    return 'Serial.begin(' + baud + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "bluetooth_send",
+    "message0": "send %1 via Bluetooth",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "TEXT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Send data via Bluetooth",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['bluetooth_send'] = function(block) {
+    var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'Serial.print(' + text + ');\n';
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "bluetooth_receive",
+    "message0": "receive data via Bluetooth",
+    "output": "String",
+    "colour": 210,
+    "tooltip": "Receive data via Bluetooth",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['bluetooth_receive'] = function(block) {
+    return ['Serial.read()', Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "sd_init",
+    "message0": "initialize SD card at pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 10
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Initialize SD card",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['sd_init'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    return 'SD.begin(' + pin + ');\n';
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "sd_write",
+    "message0": "write %1 to file %2 on SD card",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "DATA"
+        },
+        {
+            "type": "field_input",
+            "name": "FILENAME",
+            "text": "data.txt"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Write data to SD card",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['sd_write'] = function(block) {
+    var data = Blockly.JavaScript.valueToCode(block, 'DATA', Blockly.JavaScript.ORDER_ATOMIC);
+    var filename = block.getFieldValue('FILENAME');
+    return 'File dataFile = SD.open("' + filename + '", FILE_WRITE);\n' +
+           'if (dataFile) {\n' +
+           '  dataFile.println(' + data + ');\n' +
+           '  dataFile.close();\n' +
+           '}\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "lcd_print",
+    "message0": "display %1 on LCD",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "TEXT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Display text on LCD",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['lcd_print'] = function(block) {
+    var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'lcd.print(' + text + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "serial_plotter",
+    "message0": "plot %1 on serial plotter",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "DATA"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Plot data on serial plotter",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['serial_plotter'] = function(block) {
+    var data = Blockly.JavaScript.valueToCode(block, 'DATA', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'Serial.println(' + data + ');\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "wifi_connect",
+    "message0": "connect to Wi-Fi SSID %1 password %2",
+    "args0": [
+        {
+            "type": "field_input",
+            "name": "SSID",
+            "text": "your_SSID"
+        },
+        {
+            "type": "field_input",
+            "name": "PASSWORD",
+            "text": "your_password"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Connect to Wi-Fi",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['wifi_connect'] = function(block) {
+    var ssid = block.getFieldValue('SSID');
+    var password = block.getFieldValue('PASSWORD');
+    return 'WiFi.begin("' + ssid + '", "' + password + '");\n' +
+           'while (WiFi.status() != WL_CONNECTED) {\n' +
+           '  delay(500);\n' +
+           '}\n';
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "wifi_status",
+    "message0": "Wi-Fi connection status",
+    "output": "Boolean",
+    "colour": 160,
+    "tooltip": "Check Wi-Fi status",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['wifi_status'] = function(block) {
+    return ['WiFi.status() == WL_CONNECTED', Blockly.JavaScript.ORDER_NONE];
+};
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "http_get",
+    "message0": "send GET request to URL %1",
+    "args0": [
+        {
+            "type": "field_input",
+            "name": "URL",
+            "text": "http://example.com"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Send GET request",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['http_get'] = function(block) {
+    var url = block.getFieldValue('URL');
+    return 'HTTPClient http;\n' +
+           'http.begin("' + url + '");\n' +
+           'int httpCode = http.GET();\n' +
+           'http.end();\n';
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "bluetooth_init",
+    "message0": "initialize Bluetooth as %1",
+    "args0": [
+        {
+            "type": "field_input",
+            "name": "NAME",
+            "text": "ESP32_BT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 160,
+    "tooltip": "Initialize Bluetooth",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['bluetooth_init'] = function(block) {
+    var name = block.getFieldValue('NAME');
+    return 'SerialBT.begin("' + name + '");\n';
+};
+
+
+
+
+Blockly.defineBlocksWithJsonArray([{
+    "type": "digital_read",
+    "message0": "read digital value from pin %1",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 13
+        }
+    ],
+    "output": "Boolean",
+    "colour": 230,
+    "tooltip": "Read digital value from sensor",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['digital_read'] = function(block) {
+    var pin = block.getFieldValue('PIN');
+    return ['digitalRead(' + pin + ')', Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "read_dht",
+    "message0": "read %1 from DHT sensor on pin %2",
+    "args0": [
+        {
+            "type": "field_dropdown",
+            "name": "DATA",
+            "options": [
+                ["temperature", "TEMPERATURE"],
+                ["humidity", "HUMIDITY"]
+            ]
+        },
+        {
+            "type": "field_number",
+            "name": "PIN",
+            "value": 0,
+            "min": 0,
+            "max": 13
+        }
+    ],
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Read temperature or humidity from DHT sensor",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['read_dht'] = function(block) {
+    var dataType = block.getFieldValue('DATA');
+    var pin = block.getFieldValue('PIN');
+    var code;
+    if (dataType == 'TEMPERATURE') {
+        code = 'dht.readTemperature()';
+    } else {
+        code = 'dht.readHumidity()';
+    }
+    return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "ultrasonic_read",
+    "message0": "measure distance using ultrasonic sensor trig %1 echo %2",
+    "args0": [
+        {
+            "type": "field_number",
+            "name": "TRIG",
+            "value": 0,
+            "min": 0,
+            "max": 13
+        },
+        {
+            "type": "field_number",
+            "name": "ECHO",
+            "value": 0,
+            "min": 0,
+            "max": 13
+        }
+    ],
+    "output": "Number",
+    "colour": 160,
+    "tooltip": "Read distance from ultrasonic sensor",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock['ultrasonic_read'] = function(block) {
+    var trigPin = block.getFieldValue('TRIG');
+    var echoPin = block.getFieldValue('ECHO');
+    return [
+        'ultrasonicRead(' + trigPin + ', ' + echoPin + ')',
+        Blockly.JavaScript.ORDER_ATOMIC
+    ];
+};
+Blockly.defineBlocksWithJsonArray([{
+    "type": "display_oled",
+    "message0": "display %1 on OLED screen",
+    "args0": [
+        {
+            "type": "input_value",
+            "name": "TEXT"
+        }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Display data on OLED screen",
+    "helpUrl": ""
+}]);
+
+Blockly.JavaScript.forBlock["display_oled"] = function(block) {
+    // Example code generation logic for displaying text on an OLED
+    var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC);
+    var code = 'oledDisplay.showText(' + text + ');\n';
+    return code;
+  };
+  
+Blockly.defineBlocksWithJsonArray([
+    {
+      "type": "pwm_control",
+      "message0": "Set PWM on pin %1 to %2",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "PIN",
+          "options": [
+            ["3", "3"],
+            ["5", "5"],
+            ["6", "6"],
+            ["9", "9"],
+            ["10", "10"],
+            ["11", "11"]
+          ]
+        },
+        {
+          "type": "field_number",
+          "name": "VALUE",
+          "value": 0,
+          "min": 0,
+          "max": 255
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": 230,
+      "tooltip": "Set PWM signal on selected pin",
+      "helpUrl": ""
+    },
+    {
+      "type": "servo_control",
+      "message0": "Set Servo on pin %1 to angle %2",
+      "args0": [
+        {
+          "type": "field_dropdown",
+          "name": "PIN",
+          "options": [
+            ["3", "3"],
+            ["5", "5"],
+            ["6", "6"],
+            ["9", "9"],
+            ["10", "10"],
+            ["11", "11"]
+          ]
+        },
+        {
+          "type": "field_number",
+          "name": "ANGLE",
+          "value": 0,
+          "min": 0,
+          "max": 180
+        }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": 230,
+      "tooltip": "Set Servo to specified angle on selected pin",
+      "helpUrl": ""
+    }
+  ]);
+  
+  Blockly.JavaScript.forBlock['pwm_control'] = function(block) {
+    var dropdown_pin = block.getFieldValue('PIN');
+    var number_value = block.getFieldValue('VALUE');
+    var code = 'analogWrite(' + dropdown_pin + ', ' + number_value + ');\n';
+    return code;
+  };
+    </script>     
+    <script>
+      // Initialize Blockly in the workspace
+var workspace = Blockly.inject('blocklyDiv', {
+    toolbox: `<xml xmlns="http://www.w3.org/1999/xhtml">
+                <category name="Basic" colour="#D6A65C">
+                    <block type="arduino_setup"></block>
+                    <block type="arduino_loop"></block>
+                    <block type="delay"></block>
+                </category>
+                <!-- Logic Blocks -->
+                <category name="Logic" colour="#5C81A6" >
+
+                    <block type="controls_if"></block>
+                    <block type="controls_ifelse"></block>
+                    <block type="logic_compare"></block>
+                    <block type="logic_operation"></block>
+                    <block type="logic_boolean"></block>
+                    <block type="logic_ternary"></block>
+                </category>
+
+                <!-- Loops Blocks -->
+                <category name="Loops" colour="#5CA65C">
+                    <block type="controls_repeat_ext"></block>
+                    <block type="controls_whileUntil"></block>
+                    <block type="controls_for"></block>
+                    <block type="controls_forEach"></block>
+                    <block type="controls_flow_statements"></block>
+                </category>
+
+                <!-- Math Blocks -->
+                <category name="Math" colour="#5C68A6">
+                    <block type="math_number"></block>
+                    <block type="math_arithmetic"></block>
+                    <block type="math_single"></block>
+                    <block type="math_trig"></block>
+                    <block type="math_constant"></block>
+                    <block type="math_number_property"></block>
+                </category>
+
+                <!-- Text Blocks -->
+                <category name="Text" colour="#5CA68D">
+                    <block type="text"></block>
+                    <block type="text_print"></block>
+                </category>
+
+                <!-- Variables Blocks -->
+                <category name="Variables" custom="VARIABLE" colour="#A65C81"></category>
+
+                <!-- Functions Blocks -->
+                <category name="Functions" custom="PROCEDURE" colour="#9A5CA6"></category>
+
+                <!-- Custom Blocks -->
+                <category name="Custom" colour="#D6A65C">
+                    <block type="turn_led_on"></block>
+                    <block type="turn_led_off"></block>
+                    <block type="pin_mode"></block>
+                    <block type="digital_write"></block>
+                    <block type="analog_read"></block>
+                    <block type="digital_read"></block>
+                    <block type="read_temperature"></block>
+                    <block type="led_control"></block>
+                    <block type="motor_control"></block>
+                    <block type="buzzer_control"></block>
+                    <block type="serial_begin"></block>
+                    <block type="serial_print"></block>
+                    <block type="serial_println"></block>
+                    <block type="serial_read"></block>
+                    <block type="serial_control"></block>
+                    <block type="bluetooth_begin"></block>
+                    <block type="bluetooth_send"></block>
+                    <block type="bluetooth_receive"></block>
+                    <block type="sd_init"></block>
+                    <block type="sd_write"></block>
+                    <block type="lcd_print"></block>
+                    <block type="serial_plotter"></block>
+                    <block type="wifi_connect"></block>
+                    <block type="wifi_status"></block>
+                    <block type="http_get"></block>
+                    <block type="bluetooth_init"></block>
+                    <block type="bluetooth_send"></block>
+                    <block type="read_dht"></block>
+                    <block type="ultrasonic_read"></block>
+                    <block type="display_oled"></block>
+                </category>
+                <category name="Advanced Control" colour="#FFAB19">
+                    <block type="pwm_control"></block>
+                    <block type="servo_control"></block>
+                </category>
+              </xml>`,
+              
+          
+});
+
+// Generate JavaScript code from the blocks
+document.getElementById('generateCode').addEventListener('click', function() {
+    var code = Blockly.JavaScript.workspaceToCode(workspace);
+    console.log(Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace))); 
+    var codeArea = document.getElementById('codeArea');
+    
+    if (code) {
+        codeArea.textContent = code;  // Show the generated code in the <pre> element
+    } else {
+        codeArea.textContent = "No blocks in workspace! Add blocks to generate code.";
+    }
+});
+
+
+// Save the Workspace to local storage
+document.getElementById('saveWorkspace').addEventListener('click', function() {
+    var xml = Blockly.Xml.workspaceToDom(workspace);  // Convert workspace to XML
+    var xml_text = Blockly.Xml.domToPrettyText(xml);  // Make it pretty-printed
+    localStorage.setItem('savedBlocks', xml_text);    // Save it in local storage
+    alert("Workspace saved successfully!");
+});
+
+// Load the Workspace from local storage
+document.getElementById('loadWorkspace').addEventListener('click', function() {
+    var xml_text = localStorage.getItem('savedBlocks');
+    if (xml_text) {
+        var xml = Blockly.Xml.textToDom(xml_text);   // Convert text back to XML
+        workspace.clear();                           // Clear current workspace
+        Blockly.Xml.domToWorkspace(xml, workspace);  // Load the saved blocks
+        alert("Workspace loaded successfully!");
+    } else {
+        alert("No saved workspace found.");
+    }
+});
+
+// Download the generated code as a file
+document.getElementById('downloadCode').addEventListener('click', function() {
+    var code = Blockly.JavaScript.workspaceToCode(workspace);  // Generate code
+    if (code) {
+        var blob = new Blob([code], { type: 'text/plain' });    // Create a file blob
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'code.ino';   // Download as Arduino .ino file
+        link.click();                 // Trigger the download
+    } else {
+        alert("No code to download! Please add blocks to the workspace.");
+    }
+});
+
+document.getElementById('uploadButton').onclick = async () => {
+    await uploadCodeToMicrocontroller();
+};
+
+
+
+
+
+
+
+async function connectMicrocontroller() {
+    try {
+        const port = await navigator.serial.requestPort({
+            filters: [{ usbVendorId: 0x1A86, usbProductId: 0x7523 }] // Updated property names
+        });
+        await port.open({ baudRate: 115200 });
+
+        const writer = port.writable.getWriter();
+        const encoder = new TextEncoder();
+        const data = encoder.encode('Hello from Web Serial!');
+        await writer.write(data);
+        writer.releaseLock();
+
+        updateOutput('Sent data via Web Serial\n');
+    } catch (error) {
+        console.error('Web Serial Error:', error);
+        updateOutput('Web Serial Error: ' + error.message + '\n');
+    }
+}
+
+function updateOutput(message) {
+    const outputElement = document.getElementById('output');
+    if (outputElement) {
+        outputElement.textContent += message;
+    } else {
+        console.error('Output element not found.');
+    }
+}
+
+async function uploadCodeToMicrocontroller() {
+    try {
+        // Request access to a port
+        const port = await navigator.serial.requestPort();
+        
+        // Open the port at 9600 baud rate
+        await port.open({ baudRate: 9600 });
+
+        // Write code to the microcontroller
+        const writer = port.writable.getWriter();
+        const code = Blockly.Arduino.workspaceToCode(workspace); // Get generated code
+        await writer.write(new TextEncoder().encode(code));
+
+        writer.releaseLock();
+        await port.close();
+
+        document.getElementById('output').innerText = 'Code uploaded successfully!';
+    } catch (error) {
+        document.getElementById('output').innerText = `Error: ${error.message}`;
+        console.error('Error during upload:', error);
+    }
+}
+    </script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Blockly Image Processing</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/msg/en.js"></script>
+    <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/python_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/dart_compressed.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #333;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 20px;
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #blocklyDiv {
+            height: 480px;
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+
+        #controlPanel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        button, input[type="file"] {
+            padding: 12px 18px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #00c6ff, #005f8f);
+            color: #fff;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #005f8f, #00c6ff);
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(1);
+        }
+
+        input[type="file"] {
+            background: #fff;
+            border: 2px solid #00c6ff;
+            color: #00c6ff;
+        }
+
+        input[type="file"]:hover {
+            border-color: #005f8f;
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 45%;
+            transition: all 0.3s ease;
+        }
+
+        canvas:hover {
+            border-color: #00c6ff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .canvas-container canvas {
+            max-height: 400px;
+        }
+
+        #resetButton {
+            background: #ff5e5e;
+            color: #fff;
+        }
+
+        #resetButton:hover {
+            background: #c94444;
+        }
+
+        @media (max-width: 768px) {
+            canvas {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Processing with Blockly</h1>
+    <div id="controlPanel">
+        <input type="file" id="imageUpload" accept="image/*" title="Upload an image for processing">
+        <button id="runButton">Run Image Processing</button>
+        <button id="resetButton">Reset</button>
+    </div>
+
+    <div class="canvas-container">
+        <div>
+            <h3>Original Image</h3>
+            <canvas id="originalCanvas" width="400" height="400">Original Image</canvas>
+        </div>
+        <div>
+            <h3>Processed Image</h3>
+            <canvas id="processedCanvas" width="400" height="400">Processed Image</canvas>
+        </div>
+    </div>
+
+    <div id="blocklyDiv"></div>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Image Operations" colour="120">
+            <block type="load_image"></block>
+            <block type="resize_image"></block>
+            <block type="grayscale_image"></block>
+            <block type="brightness_adjust"></block>
+            <block type="apply_convolution"></block>
+        </category>
+        <category name="Convolution Kernels" colour="200">
+            <block type="sharpen_kernel"></block>
+            <block type="blur_kernel"></block>
+            <block type="edge_detect_kernel"></block>
+        </category>
+        <category name="Math" colour="230">
+            <block type="math_number"></block>
+        </category>
+    </xml>
+
+    <script>
+       class ImageProcessor {
+    static grayscale(imageData) {
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            data[i] = data[i + 1] = data[i + 2] = avg;
+        }
+        return imageData;
+    }
+
+    static resize(imageData, width, height) {
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        
+        const imgCanvas = document.createElement('canvas');
+        const imgCtx = imgCanvas.getContext('2d');
+        imgCanvas.width = imageData.width;
+        imgCanvas.height = imageData.height;
+        imgCtx.putImageData(imageData, 0, 0);
+        
+        tempCtx.drawImage(imgCanvas, 0, 0, width, height);
+        return tempCtx.getImageData(0, 0, width, height);
+    }
+
+    static brightness(imageData, adjustment) {
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, Math.max(0, data[i] + adjustment));
+            data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + adjustment));
+            data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + adjustment));
+        }
+        return imageData;
+    }
+
+    static applyConvolution(imageData, kernel) {
+        const width = imageData.width;
+        const height = imageData.height;
+        const src = imageData.data;
+        const output = new Uint8ClampedArray(src.length);
+        const kernelSize = Math.sqrt(kernel.length);
+        const half = Math.floor(kernelSize / 2);
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let r = 0, g = 0, b = 0;
+                for (let ky = -half; ky <= half; ky++) {
+                    for (let kx = -half; kx <= half; kx++) {
+                        const srcX = x + kx;
+                        const srcY = y + ky;
+                        
+                        if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height) {
+                            const srcIdx = (srcY * width + srcX) * 4;
+                            const kernelIdx = (ky + half) * kernelSize + (kx + half);
+                            
+                            r += src[srcIdx] * kernel[kernelIdx];
+                            g += src[srcIdx + 1] * kernel[kernelIdx];
+                            b += src[srcIdx + 2] * kernel[kernelIdx];
+                        }
+                    }
+                }
+                
+                const idx = (y * width + x) * 4;
+                output[idx] = Math.min(255, Math.max(0, r));
+                output[idx + 1] = Math.min(255, Math.max(0, g));
+                output[idx + 2] = Math.min(255, Math.max(0, b));
+                output[idx + 3] = 255;
+            }
+        }
+        
+        return new ImageData(output, width, height);
+    }
+}
+
+// Blockly Block Definitions
+Blockly.defineBlocksWithJsonArray([
+    {
+        "type": "load_image",
+        "message0": "Load Image",
+        "output": "Image",
+        "colour": 120,
+        "tooltip": "Loads the currently uploaded image"
+    },
+    {
+        "type": "resize_image",
+        "message0": "Resize to width %1 height %2 on image %3",
+        "args0": [
+            {"type": "input_value", "name": "width", "check": "Number"},
+            {"type": "input_value", "name": "height", "check": "Number"},
+            {"type": "input_value", "name": "image", "check": "Image"}
+        ],
+        "output": "Image",
+        "colour": 160,
+        "tooltip": "Resizes the image to specified dimensions"
+    },
+    {
+        "type": "grayscale_image",
+        "message0": "Convert to grayscale %1",
+        "args0": [
+            {"type": "input_value", "name": "image", "check": "Image"}
+        ],
+        "output": "Image",
+        "colour": 180,
+        "tooltip": "Converts image to grayscale"
+    },
+    {
+        "type": "brightness_adjust",
+        "message0": "Adjust brightness by %1 on image %2",
+        "args0": [
+            {"type": "input_value", "name": "adjustment", "check": "Number"},
+            {"type": "input_value", "name": "image", "check": "Image"}
+        ],
+        "output": "Image",
+        "colour": 200,
+        "tooltip": "Adjust image brightness"
+    },
+    {
+        "type": "apply_convolution",
+        "message0": "Apply convolution kernel %1 to image %2",
+        "args0": [
+            {"type": "input_value", "name": "kernel", "check": "Array"},
+            {"type": "input_value", "name": "image", "check": "Image"}
+        ],
+        "output": "Image",
+        "colour": 220,
+        "tooltip": "Apply a convolution filter to the image"
+    },
+    {
+        "type": "sharpen_kernel",
+        "message0": "Sharpen Kernel",
+        "output": "Array",
+        "colour": 250,
+        "tooltip": "Sharpen convolution kernel"
+    },
+    {
+        "type": "blur_kernel",
+        "message0": "Blur Kernel",
+        "output": "Array",
+        "colour": 250,
+        "tooltip": "Blur convolution kernel"
+    },
+    {
+        "type": "edge_detect_kernel",
+        "message0": "Edge Detection Kernel",
+        "output": "Array",
+        "colour": 250,
+        "tooltip": "Edge detection convolution kernel"
+    }
+]);
+
+// JavaScript Code Generators
+Blockly.JavaScript['load_image'] = function() {
+    return ['loadCurrentImage()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['resize_image'] = function(block) {
+    const width = Blockly.JavaScript.valueToCode(block, 'width', Blockly.JavaScript.ORDER_ATOMIC);
+    const height = Blockly.JavaScript.valueToCode(block, 'height', Blockly.JavaScript.ORDER_ATOMIC);
+    const image = Blockly.JavaScript.valueToCode(block, 'image', Blockly.JavaScript.ORDER_ATOMIC);
+    return [`resizeImage(${image}, ${width}, ${height})`, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['grayscale_image'] = function(block) {
+    const image = Blockly.JavaScript.valueToCode(block, 'image', Blockly.JavaScript.ORDER_ATOMIC);
+    return [`grayscaleImage(${image})`, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['brightness_adjust'] = function(block) {
+    const adjustment = Blockly.JavaScript.valueToCode(block, 'adjustment', Blockly.JavaScript.ORDER_ATOMIC);
+    const image = Blockly.JavaScript.valueToCode(block, 'image', Blockly.JavaScript.ORDER_ATOMIC);
+    return [`adjustBrightness(${image}, ${adjustment})`, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['apply_convolution'] = function(block) {
+    const kernel = Blockly.JavaScript.valueToCode(block, 'kernel', Blockly.JavaScript.ORDER_ATOMIC);
+    const image = Blockly.JavaScript.valueToCode(block, 'image', Blockly.JavaScript.ORDER_ATOMIC);
+    return [`applyConvolutionFilter(${image}, ${kernel})`, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['sharpen_kernel'] = function() {
+    return ['[0,-1,0,-1,5,-1,0,-1,0]', Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['blur_kernel'] = function() {
+    return ['[1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9]', Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['edge_detect_kernel'] = function() {
+    return ['[-1,-1,-1,-1,8,-1,-1,-1,-1]', Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+// Application Setup
+document.addEventListener('DOMContentLoaded', () => {
+    const originalCanvas = document.getElementById('originalCanvas');
+    const processedCanvas = document.getElementById('processedCanvas');
+    const imageUpload = document.getElementById('imageUpload');
+    const runButton = document.getElementById('runButton');
+
+    let currentImageData = null;
+
+    // Image Upload Handling
+    imageUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                originalCanvas.width = img.width;
+                originalCanvas.height = img.height;
+                processedCanvas.width = img.width;
+                processedCanvas.height = img.height;
+                
+                const ctx = originalCanvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                currentImageData = ctx.getImageData(0, 0, img.width, img.height);
+            };
+            img.src = event.target.result;
+        };
+        
+        reader.readAsDataURL(file);
+    });
+
+    // Global Image Processing Functions
+    window.loadCurrentImage = () => {
+        return currentImageData;
+    };
+
+    window.resizeImage = (imageData, width, height) => {
+        return ImageProcessor.resize(imageData, width, height);
+    };
+
+    window.grayscaleImage = (imageData) => {
+        return ImageProcessor.grayscale(imageData);
+    };
+
+    window.adjustBrightness = (imageData, adjustment) => {
+        return ImageProcessor.brightness(imageData, adjustment);
+    };
+
+    window.applyConvolutionFilter = (imageData, kernel) => {
+        return ImageProcessor.applyConvolution(imageData, kernel);
+    };
+
+    // Initialize Blockly Workspace
+    const workspace = Blockly.inject('blocklyDiv', {
+        toolbox: document.getElementById('toolbox')
+    });
+
+    // Run Processing Button
+    runButton.addEventListener('click', () => {
+        if (!currentImageData) {
+            alert('Please upload an image first');
+            return;
+        }
+
+        const code = Blockly.Python.workspaceToCode(workspace);
+        console.log('Generated Code:', code);
+
+        try {
+            let processedImageData = currentImageData;
+            const generatedFunction = new Function(`return ${code}`)();
+            
+            if (generatedFunction) {
+                processedImageData = generatedFunction;
+            }
+
+            const processedCtx = processedCanvas.getContext('2d');
+            processedCtx.putImageData(processedImageData, 0, 0);
+        } catch (error) {
+            console.error("Error processing image:", error);
+            alert('Error processing image. Check console for details.');
+        }
+    });
+});
+    </script>
+</body>
+</html>

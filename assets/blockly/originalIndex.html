@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Blockly IoT and Arduino Code Editor</title>
+    <!-- Use hosted Blockly scripts -->
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script>
+      function initializeBlockly() {
+        console.log("Initializing Blockly...");
+        const workspace = Blockly.inject('blocklyDiv', {
+          toolbox: document.getElementById('toolbox'),
+        });
+        console.log("Blockly initialized", workspace);
+
+        window.getCode = function () {
+          const code = Blockly.JavaScript.workspaceToCode(workspace);
+          console.log(code);
+          return code; // Returns the generated code
+        };
+      }
+      function generateCode() {
+            const code = window.getCode(); // Call the getCode function
+            alert(code); // Display the generated code in an alert
+        }
+      // Define custom blocks for Arduino, IoT, and general-purpose blocks
+      Blockly.defineBlocksWithJsonArray([
+        // Arduino Pin Mode Block
+        {
+          "type": "arduino_pin_mode",
+          "message0": "Set pin %1 mode to %2",
+          "args0": [
+            { "type": "field_number", "name": "PIN", "value": 13 },
+            {
+              "type": "field_dropdown",
+              "name": "MODE",
+              "options": [
+                ["INPUT", "INPUT"],
+                ["OUTPUT", "OUTPUT"]
+              ]
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 230,
+          "tooltip": "Set the mode of a pin",
+          "helpUrl": ""
+        },
+        // Arduino Digital Write Block
+        {
+          "type": "arduino_digital_write",
+          "message0": "Set digital pin %1 to %2",
+          "args0": [
+            { "type": "field_number", "name": "PIN", "value": 13 },
+            {
+              "type": "field_dropdown",
+              "name": "VALUE",
+              "options": [
+                ["HIGH", "HIGH"],
+                ["LOW", "LOW"]
+              ]
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 230,
+          "tooltip": "Write a digital value to a pin",
+          "helpUrl": ""
+        },
+        
+        // Arduino Analog Read Block
+        {
+          "type": "arduino_analog_read",
+          "message0": "Read analog value from pin %1",
+          "args0": [{ "type": "field_number", "name": "PIN", "value": 0 }],
+          "output": "Number",
+          "colour": 230,
+          "tooltip": "Read an analog value from a pin",
+          "helpUrl": ""
+        },
+        // Arduino Digital Read Block
+        {
+          "type": "arduino_digital_read",
+          "message0": "Read digital value from pin %1",
+          "args0": [{ "type": "field_number", "name": "PIN", "value": 2 }],
+          "output": "Boolean",
+          "colour": 230,
+          "tooltip": "Read a digital value from a pin",
+          "helpUrl": ""
+        },
+        // Arduino PWM Write Block
+        {
+          "type": "arduino_pwm_write",
+          "message0": "Set PWM pin %1 to value %2",
+          "args0": [
+            { "type": "field_number", "name": "PIN", "value": 9 },
+            { "type": "field_number", "name": "VALUE", "value": 128 }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 230,
+          "tooltip": "Write a PWM value to a pin",
+          "helpUrl": ""
+        },
+        // IoT Wi-Fi Setup Block
+        {
+          "type": "iot_wifi_setup",
+          "message0": "Connect to Wi-Fi SSID %1 Password %2",
+          "args0": [
+            { "type": "field_input", "name": "SSID", "text": "YourSSID" },
+            { "type": "field_input", "name": "PASSWORD", "text": "YourPassword" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Set up Wi-Fi connection",
+          "helpUrl": ""
+        },
+        // IoT MQTT Block
+        {
+          "type": "iot_mqtt_connect",
+          "message0": "Connect to MQTT broker %1 on port %2",
+          "args0": [
+            { "type": "field_input", "name": "BROKER", "text": "mqtt.example.com" },
+            { "type": "field_number", "name": "PORT", "value": 1883 }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Connect to an MQTT broker",
+          "helpUrl": ""
+        },
+        // IoT MQTT Publish Block
+        {
+          "type": "iot_mqtt_publish",
+          "message0": "Publish message %1 to topic %2",
+          "args0": [
+            { "type": "field_input", "name": "MESSAGE", "text": "Hello" },
+            { "type": "field_input", "name": "TOPIC", "text": "topic/test" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Publish a message to an MQTT topic",
+          "helpUrl": ""
+        },
+        // IoT MQTT Subscribe Block
+        {
+          "type": "iot_mqtt_subscribe",
+          "message0": "Subscribe to MQTT topic %1",
+          "args0": [
+            { "type": "field_input", "name": "TOPIC", "text": "topic/test" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Subscribe to an MQTT topic",
+          "helpUrl": ""
+        },
+        // Variables: Create a new variable
+        {
+          "type": "variables_set",
+          "message0": "Set variable %1 to %2",
+          "args0": [
+            { "type": "field_variable", "name": "VAR", "variable": "item" },
+            { "type": "input_value", "name": "VALUE" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 330,
+          "tooltip": "Create a new variable and set its value",
+          "helpUrl": ""
+        },
+        // Loops: Repeat block
+        {
+          "type": "controls_repeat_ext",
+          "message0": "Repeat %1 times",
+          "args0": [
+            { "type": "input_value", "name": "TIMES" }
+          ],
+          "colour": 120,
+          "previousStatement": null,
+          "nextStatement": null,
+          "helpUrl": ""
+        },
+        // Conditionals: If-Else Block
+        {
+          "type": "controls_if",
+          "message0": "If %1 then %2 else %3",
+          "args0": [
+            { "type": "input_value", "name": "IF0" },
+            { "type": "input_statement", "name": "DO0" },
+            { "type": "input_statement", "name": "DO1" }
+          ],
+          "colour": 210,
+          "previousStatement": null,
+          "nextStatement": null,
+          "tooltip": "If condition is true, do something, else do something else",
+          "helpUrl": ""
+        },
+        // Math: Addition block
+        {
+          "type": "math_arithmetic",
+          "message0": "%1 + %2",
+          "args0": [
+            { "type": "input_value", "name": "A" },
+            { "type": "input_value", "name": "B" }
+          ],
+          "output": "Number",
+          "colour": 230,
+          "tooltip": "Add two numbers",
+          "helpUrl": ""
+        },
+        // Logic: And block
+        {
+          "type": "logic_boolean",
+          "message0": "%1 AND %2",
+          "args0": [
+            { "type": "input_value", "name": "A" },
+            { "type": "input_value", "name": "B" }
+          ],
+          "output": "Boolean",
+          "colour": 210,
+          "tooltip": "Returns true if both inputs are true",
+          "helpUrl": ""
+        },
+        {
+          "type": "text",
+          "message0": "%1",
+          "args0": [
+            { "type": "field_input", "name": "TEXT", "text": "Hello" }
+          ],
+          "output": "String",
+          "colour": 160,
+          "tooltip": "Create a text string",
+          "helpUrl": ""
+        }
+      ]);
+// Add Arduino Analog Read Block code generator
+Blockly.JavaScript['arduino_analog_read'] = function (block) {
+            const pin = block.getFieldValue('PIN');
+            return [`analogRead(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+        };
+      // Arduino code generators
+      Blockly.JavaScript['arduino_pin_mode'] = function (block) {
+        const pin = block.getFieldValue('PIN');
+        const mode = block.getFieldValue('MODE');
+        return `pinMode(${pin}, ${mode});\n`;
+      };
+
+      Blockly.JavaScript['arduino_digital_write'] = function (block) {
+        const pin = block.getFieldValue('PIN');
+        const value = block.getFieldValue('VALUE');
+        return `digitalWrite(${pin}, ${value});\n`;
+      };
+
+      Blockly.JavaScript['arduino_analog_read'] = function (block) {
+        const pin = block.getFieldValue('PIN');
+        return [`analogRead(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+      };
+
+      // IoT code generators
+      Blockly.JavaScript['iot_wifi_setup'] = function (block) {
+        const ssid = block.getFieldValue('SSID');
+        const password = block.getFieldValue('PASSWORD');
+        return `WiFi.begin("${ssid}", "${password}");\nwhile (WiFi.status() != WL_CONNECTED) {\ndelay(500);\n}\n`;
+      };
+
+      Blockly.JavaScript['iot_mqtt_connect'] = function (block) {
+        const broker = block.getFieldValue('BROKER');
+        const port = block.getFieldValue('PORT');
+        return `mqttClient.connect("${broker}", ${port});\n`;
+      };
+
+      Blockly.JavaScript['iot_mqtt_publish'] = function (block) {
+        const message = block.getFieldValue('MESSAGE');
+        const topic = block.getFieldValue('TOPIC');
+        return `mqttClient.publish("${topic}", "${message}");\n`;
+      };
+
+      Blockly.JavaScript['iot_mqtt_subscribe'] = function (block) {
+        const topic = block.getFieldValue('TOPIC');
+        return `mqttClient.subscribe("${topic}");\n`;
+      };
+
+      // General-purpose code generators
+      Blockly.JavaScript['variables_set'] = function (block) {
+        const varName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+        const value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT);
+        return `let ${varName} = ${value};\n`;
+      };
+
+      Blockly.JavaScript['controls_repeat_ext'] = function (block) {
+        const times = Blockly.JavaScript.valueToCode(block, 'TIMES', Blockly.JavaScript.ORDER_ATOMIC);
+        const branch = Blockly.JavaScript.statementToCode(block, 'DO');
+        return `for (let i = 0; i < ${times}; i++) {\n${branch}}\n`;
+      };
+
+      Blockly.JavaScript['controls_if'] = function (block) {
+        const condition = Blockly.JavaScript.valueToCode(block, 'IF0', Blockly.JavaScript.ORDER_NONE) || 'false';
+        const ifBranch = Blockly.JavaScript.statementToCode(block, 'DO0');
+        const elseBranch = Blockly.JavaScript.statementToCode(block, 'DO1');
+        return `if (${condition}) {\n${ifBranch}} else {\n${elseBranch}}\n`;
+      };
+
+      Blockly.JavaScript['math_arithmetic'] = function (block) {
+        const operator = block.getFieldValue('OP');
+        const left = Blockly.JavaScript.valueToCode(block, 'A', Blockly.JavaScript.ORDER_ATOMIC);
+        const right = Blockly.JavaScript.valueToCode(block, 'B', Blockly.JavaScript.ORDER_ATOMIC);
+        return `${left} ${operator} ${right}`;
+      };
+
+      Blockly.JavaScript['logic_boolean'] = function (block) {
+        const operator = block.getFieldValue('BOOL');
+        const left = Blockly.JavaScript.valueToCode(block, 'A', Blockly.JavaScript.ORDER_ATOMIC);
+        const right = Blockly.JavaScript.valueToCode(block, 'B', Blockly.JavaScript.ORDER_ATOMIC);
+        return `${left} ${operator} ${right}`;
+      };
+    </script>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+      #blocklyDiv {
+        height: calc(100% - 50px); /* Takes the remaining space for Blockly */
+        width: 100%;
+      }
+      /* Styling the button to be fixed at the bottom */
+      button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000; /* Make sure button stays above other elements */
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+  </head>
+  <body onload="initializeBlockly()">
+    <div id="blocklyDiv"></div>
+    <xml id="toolbox" style="display: none">
+      <category name="Arduino" colour="230">
+        <block type="arduino_pin_mode"></block>
+        <block type="arduino_digital_write"></block>
+        <block type="arduino_analog_read"></block>
+        <block type="arduino_digital_read"></block>
+        <block type="arduino_pwm_write"></block>
+      </category>
+      <category name="IoT" colour="160">
+        <block type="iot_wifi_setup"></block>
+        <block type="iot_mqtt_connect"></block>
+        <block type="iot_mqtt_publish"></block>
+        <block type="iot_mqtt_subscribe"></block>
+      </category>
+      <category name="Variables" colour="330">
+        <block type="variables_set"></block>
+      </category>
+      <category name="Loops" colour="120">
+        <block type="controls_repeat_ext"></block>
+      </category>
+      <category name="Conditionals" colour="210">
+        <block type="controls_if"></block>
+      </category>
+      <category name="Math" colour="230">
+        <block type="math_arithmetic"></block>
+      </category>
+      <category name="Logic" colour="210">
+        <block type="logic_boolean"></block>
+      </category>
+    </xml>
+    <button onclick="generateCode()">Generate Code</button>
+  </body>
+</html>
+//new code
+
+
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    
+    <!-- Include Blockly library -->
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+
+    <!-- Custom CSS for styling -->
+    <style>
+      /* Basic page styling */
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+      #blocklyDiv {
+        height: calc(100% - 50px); /* Takes the remaining space for Blockly */
+        width: 100%;
+      }
+      /* Styling the button to be fixed at the bottom */
+      button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000; /* Make sure button stays above other elements */
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+      /* Blockly Toolbox styles */
+      .blocklyToolboxDiv {
+        background-color: #f0f0f0;
+        width: 250px;
+        padding: 10px;
+        border-right: 1px solid #ddd;
+      }
+
+      .blocklyScrollbar {
+        background-color: #fafafa;
+      }
+    </style>
+
+    <script>
+      function initializeBlockly() {
+        console.log("Initializing Blockly...");
+        const workspace = Blockly.inject('blocklyDiv', {
+          toolbox: document.getElementById('toolbox'),
+        });
+        console.log("Blockly initialized", workspace);
+
+        window.getCode = function () {
+          const code = Blockly.JavaScript.workspaceToCode(workspace);
+          console.log(code);
+          return code; // Returns the generated code
+        };
+      }
+
+      function generateCode() {
+        const code = window.getCode(); // Call the getCode function
+        alert(code); // Display the generated code in an alert
+      }
+
+      // Define custom blocks for Arduino, IoT, and general-purpose blocks
+      Blockly.defineBlocksWithJsonArray([
+      {
+    "type": "arduino_setup",
+    "message0": "Setup",
+    "nextStatement": null,
+    "previousStatement": null,
+    "colour": 230,
+    "tooltip": "Setup function for initializing the Arduino",
+    "helpUrl": ""
+  },
+  {
+    "type": "arduino_loop",
+    "message0": "Loop",
+    "nextStatement": null,
+    "previousStatement": null,
+    "colour": 230,
+    "tooltip": "Loop function to run the Arduino code repeatedly",
+    "helpUrl": ""
+  },
+  {
+    "type": "delay",
+    "message0": "Delay for %1 milliseconds",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "DELAY_TIME",
+        "value": 1000
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Delay for a specified amount of time",
+    "helpUrl": ""
+  },
+  {
+    "type": "arduino_pin_mode",
+    "message0": "Set pin %1 mode to %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      },
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          ["INPUT", "INPUT"],
+          ["OUTPUT", "OUTPUT"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Set the mode of an Arduino pin to INPUT or OUTPUT",
+    "helpUrl": ""
+  },
+ 
+  {
+    "type": "arduino_digital_write",
+    "message0": "Set digital pin %1 to %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          ["HIGH", "HIGH"],
+          ["LOW", "LOW"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Write a digital value to a pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "arduino_analog_read",
+    "message0": "Read analog pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 0
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Read an analog value from a specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "arduino_digital_read",
+    "message0": "Read digital pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 2
+      }
+    ],
+    "output": "Boolean",
+    "colour": 230,
+    "tooltip": "Read a digital value (HIGH or LOW) from a pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "arduino_pwm_write",
+    "message0": "Set PWM pin %1 to %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 9
+      },
+      {
+        "type": "field_number",
+        "name": "VALUE",
+        "value": 255
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Write a PWM value to a pin",
+    "helpUrl": ""
+  },
+        {
+          "type": "controls_ifelse",
+          "message0": "If %1 then %2 else %3",
+          "args0": [
+            { "type": "input_value", "name": "IF0" },
+            { "type": "input_statement", "name": "DO0" },
+            { "type": "input_statement", "name": "DO1" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 210,
+          "tooltip": "If-else condition block",
+          "helpUrl": ""
+        },
+        {
+          "type": "controls_repeat_ext",
+          "message0": "Repeat %1 times",
+          "args0": [
+            { "type": "input_value", "name": "TIMES" }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 120,
+          "tooltip": "Repeat block",
+          "helpUrl": ""
+        },
+        {
+          "type": "math_number",
+          "message0": "%1",
+          "args0": [
+            { "type": "field_number", "name": "NUM", "value": 0 }
+          ],
+          "output": "Number",
+          "colour": 230,
+          "tooltip": "Math number block",
+          "helpUrl": ""
+        },
+        {
+          "type": "text",
+          "message0": "%1",
+          "args0": [
+            { "type": "field_input", "name": "TEXT", "text": "Hello" }
+          ],
+          "output": "String",
+          "colour": 160,
+          "tooltip": "Text block",
+          "helpUrl": ""
+        },
+        {
+    "type": "turn_led_on",
+    "message0": "Turn LED on at pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Turn on the LED connected to the specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "turn_led_off",
+    "message0": "Turn LED off at pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Turn off the LED connected to the specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "pin_mode",
+    "message0": "Set pin %1 mode to %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      },
+      {
+        "type": "field_dropdown",
+        "name": "MODE",
+        "options": [
+          ["INPUT", "INPUT"],
+          ["OUTPUT", "OUTPUT"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Set the mode of a pin to INPUT or OUTPUT",
+    "helpUrl": ""
+  },
+  {
+    "type": "digital_write",
+    "message0": "Write digital pin %1 to %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          ["HIGH", "HIGH"],
+          ["LOW", "LOW"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Write a digital value to a specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "analog_read",
+    "message0": "Read analog pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 0
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Read an analog value from the specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "digital_read",
+    "message0": "Read digital pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 2
+      }
+    ],
+    "output": "Boolean",
+    "colour": 230,
+    "tooltip": "Read a digital value (HIGH or LOW) from the specified pin",
+    "helpUrl": ""
+  },
+  {
+    "type": "read_temperature",
+    "message0": "Read temperature from pin %1",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 0
+      }
+    ],
+    "output": "Number",
+    "colour": 230,
+    "tooltip": "Read the temperature from a temperature sensor",
+    "helpUrl": ""
+  },
+  {
+    "type": "led_control",
+    "message0": "Control LED at pin %1 with value %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 13
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          ["ON", "HIGH"],
+          ["OFF", "LOW"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Turn the LED on or off at the specified pin",
+    "helpUrl": ""
+  },
+
+  {
+    "type": "motor_control",
+    "message0": "Control motor at pin %1 with value %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 3
+      },
+      {
+        "type": "field_number",
+        "name": "VALUE",
+        "value": 255
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Control the motor with a PWM value",
+    "helpUrl": ""
+  },
+  {
+    "type": "buzzer_control",
+    "message0": "Control buzzer at pin %1 with value %2",
+    "args0": [
+      {
+        "type": "field_number",
+        "name": "PIN",
+        "value": 4
+      },
+      {
+        "type": "field_dropdown",
+        "name": "VALUE",
+        "options": [
+          ["ON", "HIGH"],
+          ["OFF", "LOW"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Control the buzzer at the specified pin",
+    "helpUrl": ""
+  },
+  //for variable
+  {
+    "type": "variables_create",
+    "message0": "create variable %1",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "VAR",
+        "text": "variable_name"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Creates a new variable with a specific name.",
+    "helpUrl": ""
+  },
+  {
+    "type": "variables_set",
+    "message0": "set variable %1 to %2",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      },
+      {
+        "type": "input_value",
+        "name": "VALUE",
+        "check": "Number"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Sets a variable to a value.",
+    "helpUrl": ""
+  },
+  {
+    "type": "variables_get",
+    "message0": "get variable %1",
+    "args0": [
+      {
+        "type": "field_variable",
+        "name": "VAR",
+        "variable": "item"
+      }
+    ],
+    "output": null,
+    "colour": 230,
+    "tooltip": "Gets the value of a variable.",
+    "helpUrl": ""
+  },
+//function
+
+  {
+    "type": "functions_define",
+    "message0": "define function %1 with parameters %2",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "FUNC_NAME",
+        "text": "myFunction"
+      },
+      {
+        "type": "field_input",
+        "name": "PARAMS",
+        "text": "param1, param2"
+      }
+    ],
+    "message1": "do %1",
+    "args1": [
+      {
+        "type": "input_statement",
+        "name": "STACK"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Defines a custom function with parameters.",
+    "helpUrl": ""
+  }
+,
+  {
+    "type": "functions_call",
+    "message0": "call function %1 with arguments %2",
+    "args0": [
+      {
+        "type": "field_input",
+        "name": "FUNC_NAME",
+        "text": "myFunction"
+      },
+      {
+        "type": "input_value",
+        "name": "ARGUMENTS"
+      }
+    ],
+    "output": null,
+    "colour": 230,
+    "tooltip": "Calls a defined function with arguments.",
+    "helpUrl": ""
+  }
+,
+  {
+    "type": "functions_return",
+    "message0": "return %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "RETURN"
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 230,
+    "tooltip": "Returns a value from a function.",
+    "helpUrl": ""
+  }
+
+
+
+
+        // You can add all the other custom blocks here in a similar way
+      ]);
+      
+
+Blockly.JavaScript['turn_led_on'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  return `digitalWrite(${pin}, HIGH);\n`;
+};
+
+
+Blockly.JavaScript['turn_led_off'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  return `digitalWrite(${pin}, LOW);\n`;
+};
+
+
+Blockly.JavaScript['pin_mode'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  var mode = block.getFieldValue('MODE');
+  return `pinMode(${pin}, ${mode});\n`;
+};
+
+
+Blockly.JavaScript['digital_write'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  var value = block.getFieldValue('VALUE');
+  return `digitalWrite(${pin}, ${value});\n`;
+};
+
+
+Blockly.JavaScript['analog_read'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  return [`analogRead(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+
+Blockly.JavaScript['digital_read'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  return [`digitalRead(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+
+Blockly.JavaScript['read_temperature'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  return [`readTemperature(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+
+Blockly.JavaScript['led_control'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  var value = block.getFieldValue('VALUE');
+  return `digitalWrite(${pin}, ${value});\n`;
+};
+
+
+Blockly.JavaScript['motor_control'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  var value = block.getFieldValue('VALUE');
+  return `analogWrite(${pin}, ${value});\n`;
+};
+
+
+Blockly.JavaScript['buzzer_control'] = function(block) {
+  var pin = block.getFieldValue('PIN');
+  var value = block.getFieldValue('VALUE');
+  return `digitalWrite(${pin}, ${value});\n`;
+};
+
+       // Add Arduino Analog Read Block code generator
+       Blockly.JavaScript['arduino_analog_read'] = function (block) {
+        const pin = block.getFieldValue('PIN');
+        return [`analogRead(${pin})`, Blockly.JavaScript.ORDER_ATOMIC];
+      };
+
+      // IoT code generators
+      Blockly.JavaScript['iot_wifi_setup'] = function (block) {
+        const ssid = block.getFieldValue('SSID');
+        const password = block.getFieldValue('PASSWORD');
+        return `WiFi.begin("${ssid}", "${password}");\nwhile (WiFi.status() != WL_CONNECTED) {\ndelay(500);\n}\n`;
+      };
+      Blockly.JavaScript['variables_set'] = function(block) {
+  var variableName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  var value = Blockly.JavaScript.valueToCode(block, 'VALUE', Blockly.JavaScript.ORDER_ASSIGNMENT) || '0';
+  return variableName + ' = ' + value + ';\n';
+};
+
+Blockly.JavaScript['variables_get'] = function(block) {
+  var variableName = Blockly.JavaScript.variableDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  return [variableName, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.JavaScript['variables_create'] = function(block) {
+  var variableName = block.getFieldValue('VAR');
+  return 'let ' + variableName + ' = 0;\n';
+};
+Blockly.JavaScript['functions_define'] = function(block) {
+  var functionName = block.getFieldValue('FUNC_NAME');
+  var params = block.getFieldValue('PARAMS').split(',');
+  var statements = Blockly.JavaScript.statementToCode(block, 'STACK');
+  
+  // Generating the function definition
+  var functionCode = 'function ' + functionName + '(' + params.join(', ') + ') {\n' +
+                     statements +
+                     '}\n';
+  return functionCode;
+};Blockly.JavaScript['functions_call'] = function(block) {
+  var functionName = block.getFieldValue('FUNC_NAME');
+  var args = Blockly.JavaScript.valueToCode(block, 'ARGUMENTS', Blockly.JavaScript.ORDER_NONE) || '';
+  
+  // Generating the function call
+  return functionName + '(' + args + ');\n';
+};Blockly.JavaScript['functions_return'] = function(block) {
+  var returnValue = Blockly.JavaScript.valueToCode(block, 'RETURN', Blockly.JavaScript.ORDER_NONE) || 'undefined';
+  
+  // Generating the return statement
+  return 'return ' + returnValue + ';\n';
+};
+
+
+
+    </script>
+  </head>
+  <body onload="initializeBlockly()">
+    
+    <div id="blocklyDiv"></div>
+
+    <button onclick="generateCode()">Generate Code</button>
+
+    <xml id="toolbox" style="display: none">
+      <!-- Basic Category -->
+      <category name="Arduino" colour="#D6A65C">
+        <block type="arduino_setup"></block>
+        <block type="arduino_loop"></block>
+        <block type="delay"></block>
+        <block type="arduino_pin_mode"></block>
+        <block type="arduino_digital_write"></block>
+        <block type="arduino_analog_read"></block>
+        <block type="arduino_digital_read"></block>
+        <block type="arduino_pwm_write"></block>
+      </category>
+    
+      <!-- Logic Blocks -->
+      <category name="Logic" colour="#5C81A6">
+        <block type="controls_if"></block>
+        <block type="controls_ifelse"></block>
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_boolean"></block>
+        <block type="logic_ternary"></block>
+      </category>
+    
+      <!-- Loops Blocks -->
+      <category name="Loops" colour="#5CA65C">
+        <block type="controls_repeat_ext"></block>
+        <block type="controls_whileUntil"></block>
+        <block type="controls_for"></block>
+        <block type="controls_forEach"></block>
+        <block type="controls_flow_statements"></block>
+      </category>
+    
+      <!-- Math Blocks -->
+      <category name="Math" colour="#5C68A6">
+        <block type="math_number"></block>
+        <block type="math_arithmetic"></block>
+        <block type="math_single"></block>
+        <block type="math_trig"></block>
+        <block type="math_constant"></block>
+        <block type="math_number_property"></block>
+      </category>
+    
+      <!-- Text Blocks -->
+      <category name="Text" colour="#5CA68D">
+        <block type="text"></block>
+        <block type="text_print"></block>
+      </category>
+    
+      <!-- Variables Blocks -->
+      <category name="Variables" colour="#A65C81">
+        <block type="variables_set"></block>
+    <block type="variables_get"></block>
+    <block type="variables_create"></block>
+      </category>
+    
+      <!-- Functions Blocks -->
+      <category name="Functions" colour="#9A5CA6">
+        <block type="functions_define"></block>
+        <block type="functions_call"></block>
+        <block type="functions_return"></block>
+      </category>
+    
+      <!-- Custom Blocks: Led related -->
+      <category name="Led related" colour="#D6A65C">
+        <block type="turn_led_on"></block>
+        <block type="turn_led_off"></block>
+        <block type="pin_mode"></block>
+        <block type="digital_write"></block>
+        <block type="analog_read"></block>
+        <block type="digital_read"></block>
+        <block type="read_temperature"></block>
+        <block type="led_control"></block>
+        <block type="motor_control"></block>
+        <block type="buzzer_control"></block>
+      </category>
+    </xml>
+    
+  </body>
+</html>

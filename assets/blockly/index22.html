@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Arduino & IoT Block Generator</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/msg/en.js"></script>
+  <!-- Load Blockly core -->
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  <!-- Load the default blocks -->
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <!-- Load a generator -->
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/python_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/dart_compressed.js"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #blocklyDiv {
+      height: 70%;
+      width: 100%;
+    }
+    #codeArea {
+      height: 30%;
+      width: 100%;
+      resize: none;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h2>Arduino & IoT Block Generator</h2>
+  <div id="blocklyDiv"></div>
+  <textarea id="codeArea" readonly></textarea>
+
+  <script>
+    // Create Arduino generator
+    Blockly.Arduino = new Blockly.Generator('arduino');
+    Blockly.Arduino.ORDER_ATOMIC = 0;
+    Blockly.Arduino.ORDER_NONE = 99;
+
+    // Setup basic Arduino generator properties
+    Blockly.Arduino.scrub_ = function(block, code) {
+      const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+      const nextCode = nextBlock ? Blockly.Arduino.blockToCode(nextBlock) : '';
+      return code + nextCode;
+    };
+
+    // Define setup block
+    Blockly.Blocks['arduino_setup'] = {
+      init: function() {
+        this.appendStatementInput('SETUP')
+            .setCheck(null)
+            .appendField('Setup');
+        this.setColour(120);
+        this.setTooltip('Code to run once at startup');
+        this.setHelpUrl('');
+        this.setDeletable(false); // Prevent deletion
+        this.setMovable(false);  // Prevent moving
+      }
+    };
+
+    // Define loop block
+    Blockly.Blocks['arduino_loop'] = {
+      init: function() {
+        this.appendStatementInput('LOOP')
+            .setCheck(null)
+            .appendField('Loop');
+        this.setColour(120);
+        this.setTooltip('Code to run repeatedly');
+        this.setHelpUrl('');
+        this.setDeletable(false); // Prevent deletion
+        this.setMovable(false);  // Prevent moving
+      }
+    };
+
+    // Define LED control block
+    Blockly.Blocks['led_control'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField('Set LED pin')
+            .appendField(new Blockly.FieldNumber(13), 'PIN')
+            .appendField('to')
+            .appendField(new Blockly.FieldDropdown([
+              ['ON', 'HIGH'],
+              ['OFF', 'LOW']
+            ]), 'STATE');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(0);
+        this.setTooltip('Control an LED');
+      }
+    };
+
+    // Define delay block
+    Blockly.Blocks['delay_block'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField('Delay')
+            .appendField(new Blockly.FieldNumber(1000), 'DELAY')
+            .appendField('milliseconds');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(60);
+        this.setTooltip('Add a delay');
+      }
+    };
+    Blockly.Blocks['digital_read'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField('Read digital pin')
+      .appendField(new Blockly.FieldNumber(2), 'PIN');
+    this.setOutput(true, 'Boolean');
+    this.setColour(210);
+    this.setTooltip('Read digital input');
+  }
+};
+
+Blockly.Blocks['analog_read'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField('Read analog pin')
+      .appendField(new Blockly.FieldNumber(0), 'PIN');
+    this.setOutput(true, 'Number');
+    this.setColour(210);
+    this.setTooltip('Read analog input');
+  }
+};
+
+Blockly.Blocks['digital_write'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField('Set digital pin')
+      .appendField(new Blockly.FieldNumber(13), 'PIN')
+      .appendField('to')
+      .appendField(new Blockly.FieldDropdown([
+        ['HIGH', 'HIGH'],
+        ['LOW', 'LOW']
+      ]), 'STATE');
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(0);
+    this.setTooltip('Set digital output');
+  }
+};
+
+// ... other basic I/O blocks like PWM, shift registers, etc.
+
+    Blockly.Arduino.forBlock['digital_read'] = function(block) {
+  const pin = block.getFieldValue('PIN');
+  return `digitalRead(${pin})`;
+};
+
+Blockly.Arduino.forBlock['analog_read'] = function(block) {
+  const pin = block.getFieldValue('PIN');
+  return `analogRead(${pin})`;
+};
+
+Blockly.Arduino.forBlock['digital_write'] = function(block) {
+  const pin = block.getFieldValue('PIN');
+  const state = block.getFieldValue('STATE');
+  return `pinMode(${pin}, OUTPUT);\ndigitalWrite(${pin}, ${state});\n`;
+};
+
+// ... (generator functions for other blocks)
+    // Define WiFi connection block
+    Blockly.Blocks['wifi_connect'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField('Connect to WiFi')
+            .appendField('SSID:')
+            .appendField(new Blockly.FieldTextInput('network_name'), 'SSID')
+            .appendField('Password:')
+            .appendField(new Blockly.FieldTextInput('password'), 'PASS');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(180);
+        this.setTooltip('Connect to WiFi network');
+      }
+    };
+
+    // Define DHT sensor block
+    Blockly.Blocks['dht_read'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField('Read DHT sensor on pin')
+            .appendField(new Blockly.FieldNumber(2), 'PIN')
+            .appendField('get')
+            .appendField(new Blockly.FieldDropdown([
+              ['temperature', 'TEMP'],
+              ['humidity', 'HUM']
+            ]), 'TYPE');
+        this.setOutput(true, 'Number');
+        this.setColour(240);
+        this.setTooltip('Read DHT temperature/humidity sensor');
+      }
+    };
+
+    // Generator functions for Arduino code
+    Blockly.Arduino.forBlock['arduino_setup'] = function(block) {
+      const statements = Blockly.Arduino.statementToCode(block, 'SETUP');
+      return 'void setup() {\n' + statements + '}\n\n';
+    };
+
+    Blockly.Arduino.forBlock['arduino_loop'] = function(block) {
+      const statements = Blockly.Arduino.statementToCode(block, 'LOOP');
+      return 'void loop() {\n' + statements + '}\n';
+    };
+
+    Blockly.Arduino.forBlock['led_control'] = function(block) {
+      const pin = block.getFieldValue('PIN');
+      const state = block.getFieldValue('STATE');
+      return `pinMode(${pin}, OUTPUT);\ndigitalWrite(${pin}, ${state});\n`;
+    };
+
+    Blockly.Arduino.forBlock['delay_block'] = function(block) {
+      const delay_time = block.getFieldValue('DELAY');
+      return `delay(${delay_time});\n`;
+    };
+
+    Blockly.Arduino.forBlock['wifi_connect'] = function(block) {
+      const ssid = block.getFieldValue('SSID');
+      const pass = block.getFieldValue('PASS');
+      return `#include <WiFi.h>\n\nWiFi.begin("${ssid}", "${pass}");\nwhile (WiFi.status() != WL_CONNECTED) {\n  delay(500);\n}\n`;
+    };
+
+    Blockly.Arduino.forBlock['dht_read'] = function(block) {
+      const pin = block.getFieldValue('PIN');
+      const type = block.getFieldValue('TYPE');
+      let code;
+      if (type === 'TEMP') {
+        code = `dht.readTemperature()`;
+      } else {
+        code = `dht.readHumidity()`;
+      }
+      return [code, Blockly.Arduino.ORDER_ATOMIC];
+    };
+
+    // Configure workspace
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: `
+        <xml>
+          <category name="Basic" colour="60">
+            <block type="led_control"></block>
+            <block type="delay_block"></block>
+            <block type="digital_read"></block>
+            <block type="analog_read"></block>
+            <block type="digital_write"></block>
+          </category>
+          <category name="IoT" colour="180">
+            <block type="wifi_connect"></block>
+            <block type="dht_read"></block>
+          </category>
+        </xml>
+      `
+    });
+
+    // Prepopulate workspace with setup and loop blocks
+    const setupBlock = workspace.newBlock('arduino_setup');
+    setupBlock.initSvg();
+    setupBlock.render();
+    setupBlock.moveBy(20, 20); // Position setup block
+
+    const loopBlock = workspace.newBlock('arduino_loop');
+    loopBlock.initSvg();
+    loopBlock.render();
+    loopBlock.moveBy(20, 150); // Position loop block
+
+    // Add change listener
+    workspace.addChangeListener(function() {
+      try {
+        const code = Blockly.Arduino.workspaceToCode(workspace);
+        // Add required libraries and declarations
+        // const finalCode = '#include <DHT.h>\n\nDHT dht(2, DHT11);\n\n' + code;
+          const finalCode = '#include <DHT.h>\n\n' + code;
+        document.getElementById('codeArea').value = finalCode;
+      } catch (e) {
+        console.error('Generation error:', e);
+        document.getElementById('codeArea').value = '// Error: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
